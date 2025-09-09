@@ -7,6 +7,8 @@ const studentRoutes = require('./routes/students');
 
 require('dotenv').config();
 
+
+
 const app = express();
 
 // Connect to MongoDB
