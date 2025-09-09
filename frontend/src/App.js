@@ -87,7 +87,7 @@ function App() {
     if (currentView === 'list' || tabValue === 1) {
       fetchStudents();
     }
-  }, [currentView, tabValue, searchTerm]);
+  }, [currentView, tabValue, searchTerm, fetchStudents]);
 
   const fetchStudents = useCallback(async () => {
     try {

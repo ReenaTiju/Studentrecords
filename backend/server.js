@@ -4,6 +4,7 @@ const connectDB = require('./config/database');
 const studentRoutes = require('./routes/students');
 
 // Load environment variables
+
 require('dotenv').config();
 
 const app = express();
