@@ -82,13 +82,7 @@ function App() {
   const [success, setSuccess] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Fetch students on component mount and when search changes
-  useEffect(() => {
-    if (currentView === 'list' || tabValue === 1) {
-      fetchStudents();
-    }
-  }, [currentView, tabValue, searchTerm, fetchStudents]);
-
+  // Data loader
   const fetchStudents = useCallback(async () => {
     try {
       setLoading(true);
@@ -105,6 +99,13 @@ function App() {
       setLoading(false);
     }
   }, [searchTerm]);
+
+  // Fetch students on component mount and when search changes
+  useEffect(() => {
+    if (currentView === 'list' || tabValue === 1) {
+      fetchStudents();
+    }
+  }, [currentView, tabValue, searchTerm, fetchStudents]);
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
