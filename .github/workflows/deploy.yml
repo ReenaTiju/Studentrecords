@@ -29,20 +29,19 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: '18'
-        cache: 'npm'
 
     - name: Install root dependencies
-      run: npm install
+      run: npm install --no-package-lock
 
     - name: Install backend dependencies
       run: |
         cd backend
-        npm install
+        npm install --no-package-lock
 
     - name: Install frontend dependencies
       run: |
         cd frontend
-        npm install
+        npm install --no-package-lock
 
     - name: Run backend tests
       run: |
@@ -77,13 +76,12 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: '18'
-        cache: 'npm'
 
-    - name: Install dependencies and build
+    - name: Install and build
       run: |
-        npm install
-        cd backend && npm install
-        cd ../frontend && npm install && npm run build
+        npm install --no-package-lock
+        cd backend && npm install --no-package-lock
+        cd ../frontend && npm install --no-package-lock && npm run build
 
     - name: Create deployment package
       run: |
@@ -97,9 +95,9 @@ jobs:
         cat > deploy/start.sh << 'EOF'
         #!/bin/bash
         cd /var/www/studentrecords
-        npm install --production
+        npm install --production --no-package-lock
         cd backend
-        npm install --production
+        npm install --production --no-package-lock
         pm2 restart ecosystem.config.js || pm2 start ecosystem.config.js
         EOF
         chmod +x deploy/start.sh
@@ -149,9 +147,9 @@ jobs:
           rm /tmp/deployment.tar.gz
           
           # Install dependencies
-          npm install --production
+          npm install --production --no-package-lock
           cd backend
-          npm install --production
+          npm install --production --no-package-lock
           
           # Set up environment variables
           if [ ! -f .env ]; then
