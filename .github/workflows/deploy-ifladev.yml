@@ -106,6 +106,25 @@ jobs:
           script_stop: true
           script: |
             set -e
+            # Ensure Node.js and npm are available (prefer NVM)
+            export NVM_DIR="$HOME/.nvm"
+            if [ -s "$NVM_DIR/nvm.sh" ]; then
+              . "$NVM_DIR/nvm.sh"
+              nvm install 18 >/dev/null 2>&1 || true
+              nvm use 18 >/dev/null 2>&1 || true
+            elif command -v node >/dev/null 2>&1; then
+              echo "Found system Node: $(node -v)"
+            else
+              echo "NVM/Node not found; installing NVM and Node 18..."
+              curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+              . "$HOME/.nvm/nvm.sh"
+              nvm install 18
+              nvm use 18
+            fi
+            # Ensure PM2 exists (used for restart)
+            if ! command -v pm2 >/dev/null 2>&1; then
+              npm i -g pm2 || true
+            fi
             mkdir -p "${{ env.DEPLOY_PATH }}"
             tar -xzf /tmp/deployment.tar.gz -C "${{ env.DEPLOY_PATH }}"
             rm /tmp/deployment.tar.gz
