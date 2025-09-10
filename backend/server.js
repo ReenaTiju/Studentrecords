@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const connectDB = require('./config/database');
 const studentRoutes = require('./routes/students');
+const path = require('path');
 
 // Load environment variables
 
@@ -16,7 +17,8 @@ connectDB();
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
-
+// Serve built frontend from deploy root's frontend directory
+app.use(express.static(path.resolve(__dirname, '..', 'frontend')));
 // Routes
 app.use('/api/students', studentRoutes);
 
@@ -34,8 +36,13 @@ app.use((err, req, res, next) => {
   });
 });
 
-// 404 handler
-app.use((req, res) => {
+// SPA fallback for any non-API route (Express 5-safe regex)
+app.get(/^\/(?!api).*/, (req, res) => {
+  res.sendFile(path.resolve(__dirname, '..', 'frontend', 'index.html'));
+});
+
+// 404 handler (API only)
+app.use('/api', (req, res) => {
   res.status(404).json({ message: 'Route not found' });
 });
 
