@@ -1,0 +1,141 @@
+name: CI/CD - MERN to Hostinger VPS (ifladev)
+
+on:
+  push:
+    branches: [ ifladev ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies (root)
+        run: npm ci || npm install
+
+      - name: Install backend deps
+        run: |
+          cd backend
+          npm ci || npm install
+
+      - name: Install frontend deps and build
+        run: |
+          cd frontend
+          npm ci || npm install
+          npm run build
+
+      - name: Package deploy artifacts
+        run: |
+          rm -rf deploy && mkdir -p deploy
+          cp -r backend deploy/backend
+          cp -r frontend/build deploy/frontend
+          cp package.json deploy/package.json
+          if [ -f ecosystem.config.js ]; then cp ecosystem.config.js deploy/; fi
+          tar -czf deployment.tar.gz -C deploy .
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/ifladev'
+    environment:
+      name: ifladev
+    env:
+      # Prefer repo variable for path, fallback to hardcoded path provided by user
+      DEPLOY_PATH: ${{ vars.DEPLOY_PATH_IFLADEV || '/home/testatozas-atozascollegeifla/htdocs/atozascollegeifla.testatozas.in' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Rebuild tar (actions do not share workspace between jobs)
+        run: |
+          npm ci || npm install
+          cd backend && npm ci || npm install && cd ..
+          cd frontend && npm ci || npm install && npm run build && cd ..
+          rm -rf deploy && mkdir -p deploy
+          cp -r backend deploy/backend
+          cp -r frontend/build deploy/frontend
+          cp package.json deploy/package.json
+          if [ -f ecosystem.config.js ]; then cp ecosystem.config.js deploy/; fi
+          tar -czf deployment.tar.gz -C deploy .
+
+      - name: Ensure DEPLOY_PATH is defined
+        run: |
+          if [ -z "${DEPLOY_PATH}" ]; then echo "DEPLOY_PATH_IFLADEV repository variable is required or set a default in workflow" && exit 1; fi
+          echo "Deploying to: ${DEPLOY_PATH}"
+
+      - name: Create deploy directory and test SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST_IFLADEV || secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME_IFLADEV || secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY_IFLADEV || secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT_IFLADEV || secrets.VPS_PORT || 22 }}
+          timeout: 60s
+          command_timeout: 10m
+          script_stop: true
+          script: |
+            mkdir -p "${{ env.DEPLOY_PATH }}"
+            echo "OK: ${{ env.DEPLOY_PATH }}"
+
+      - name: Upload package to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST_IFLADEV || secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME_IFLADEV || secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY_IFLADEV || secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT_IFLADEV || secrets.VPS_PORT || 22 }}
+          source: "deployment.tar.gz"
+          target: "/tmp/"
+
+      - name: Extract and install on VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST_IFLADEV || secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME_IFLADEV || secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY_IFLADEV || secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT_IFLADEV || secrets.VPS_PORT || 22 }}
+          timeout: 60s
+          command_timeout: 15m
+          script_stop: true
+          script: |
+            set -e
+            mkdir -p "${{ env.DEPLOY_PATH }}"
+            tar -xzf /tmp/deployment.tar.gz -C "${{ env.DEPLOY_PATH }}"
+            rm /tmp/deployment.tar.gz
+            cd "${{ env.DEPLOY_PATH }}"
+            npm install --production --no-audit --no-fund || true
+            cd backend && npm install --production --no-audit --no-fund || true
+            if [ ! -f .env ] && [ -n "${{ secrets.MONGODB_URI_IFLADEV || secrets.MONGODB_URI }}" ]; then
+              cat > .env << EOF
+            PORT=${{ secrets.BACKEND_PORT_IFLADEV || secrets.BACKEND_PORT || 5000 }}
+            MONGODB_URI=${{ secrets.MONGODB_URI_IFLADEV || secrets.MONGODB_URI }}
+            NODE_ENV=production
+            EOF
+            fi
+            if command -v pm2 >/dev/null 2>&1 && [ -f "${{ env.DEPLOY_PATH }}/ecosystem.config.js" ]; then
+              cd "${{ env.DEPLOY_PATH }}"
+              pm2 restart ecosystem.config.js || pm2 start ecosystem.config.js || true
+            else
+              echo "PM2 not found or config missing; skipping process restart."
+            fi
+
+      - name: Health check (best effort)
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST_IFLADEV || secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME_IFLADEV || secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY_IFLADEV || secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT_IFLADEV || secrets.VPS_PORT || 22 }}
+          script: |
+            set +e
+            curl -fsS http://localhost:${{ secrets.BACKEND_PORT_IFLADEV || secrets.BACKEND_PORT || 5000 }}/api/health || true
+            echo "Health check executed."
+
+

@@ -212,6 +212,7 @@ function App() {
             <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
               Student Records Management System
             </Typography>
+            <h1>Hello World</h1>
           </Toolbar>
         </AppBar>
 

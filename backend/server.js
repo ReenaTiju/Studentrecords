@@ -20,6 +20,7 @@ app.use(express.urlencoded({ extended: true }));
 // Routes
 app.use('/api/students', studentRoutes);
 
+
 // Health check route
 app.get('/api/health', (req, res) => {
   res.json({ message: 'Student Records API is running!', timestamp: new Date().toISOString() });
