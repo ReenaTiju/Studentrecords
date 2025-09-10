@@ -71,7 +71,6 @@ function TabPanel({ children, value, index, ...other }) {
 
 /**
  * Main App Component
- * 
  */
 
 function App() {
