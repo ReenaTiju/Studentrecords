@@ -73,7 +73,6 @@ function TabPanel({ children, value, index, ...other }) {
  * Main App Component
  */
 
-
 function App() {
   const [currentView, setCurrentView] = useState('dashboard');
   const [tabValue, setTabValue] = useState(0);
