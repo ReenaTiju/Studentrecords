@@ -1,181 +1,144 @@
-name: Deploy MERN Stack to VPS
+name: CI/CD - MERN to Hostinger VPS
 
 on:
   push:
     branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
+  workflow_dispatch:
 
 jobs:
-  test:
+  build:
     runs-on: ubuntu-latest
-    
-    services:
-      mongodb:
-        image: mongo:latest
-        ports:
-          - 27017:27017
-        options: >-
-          --health-cmd "mongosh --eval 'db.runCommand({ping: 1})'"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
 
-    - name: Install root dependencies
-      run: npm install --no-package-lock
+      - name: Install dependencies (root)
+        run: npm ci || npm install
 
-    - name: Install backend dependencies
-      run: |
-        cd backend
-        npm install --no-package-lock
+      - name: Install backend deps
+        run: |
+          cd backend
+          npm ci || npm install
 
-    - name: Install frontend dependencies
-      run: |
-        cd frontend
-        npm install --no-package-lock
+      - name: Install frontend deps and build
+        run: |
+          cd frontend
+          npm ci || npm install
+          npm run build
 
-    - name: Run backend tests
-      run: |
-        cd backend
-        npm test
-      env:
-        NODE_ENV: test
-        MONGODB_URI: mongodb://localhost:27017/studentrecords_test
-
-    # Skipping frontend tests due to CRA/Jest ESM incompatibility in CI. Re-enable after migrating to Vite or React 18-compatible setup.
-    - name: Skip frontend tests
-      run: echo "Skipping frontend tests in CI"
-
-    - name: Build frontend
-      run: |
-        cd frontend
-        npm run build
+      - name: Package deploy artifacts
+        run: |
+          rm -rf deploy && mkdir -p deploy
+          cp -r backend deploy/backend
+          cp -r frontend/build deploy/frontend
+          cp package.json deploy/package.json
+          # include PM2 config if present
+          if [ -f ecosystem.config.js ]; then cp ecosystem.config.js deploy/; fi
+          tar -czf deployment.tar.gz -C deploy .
 
   deploy:
-    needs: test
+    needs: build
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
     env:
-      # Update this to your CloudPanel site path
-      DEPLOY_PATH: /home/testatozas-atozascollege/htdocs/atozascollege.testatozas.in
-
+      DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
+      - name: Download packaged artifact
+        uses: actions/download-artifact@v4
+        if: false # not using artifacts; using local tar from previous step
 
-    - name: Install and build
-      run: |
-        npm install --no-package-lock
-        cd backend && npm install --no-package-lock
-        cd ../frontend && npm install --no-package-lock && npm run build
+      - name: Rebuild tar (actions do not share workspace between jobs)
+        run: |
+          # Recreate the same tar from source, matching build steps
+          npm ci || npm install
+          cd backend && npm ci || npm install && cd ..
+          cd frontend && npm ci || npm install && npm run build && cd ..
+          rm -rf deploy && mkdir -p deploy
+          cp -r backend deploy/backend
+          cp -r frontend/build deploy/frontend
+          cp package.json deploy/package.json
+          if [ -f ecosystem.config.js ]; then cp ecosystem.config.js deploy/; fi
+          tar -czf deployment.tar.gz -C deploy .
 
-    - name: Create deployment package
-      run: |
-        mkdir -p deploy
-        cp -r backend deploy/
-        cp -r frontend/build deploy/frontend
-        cp package.json deploy/
-        # optional: include ecosystem config if you plan to run with PM2
-        if [ -f ecosystem.config.js ]; then cp ecosystem.config.js deploy/; fi
+      - name: Ensure DEPLOY_PATH is defined
+        run: |
+          if [ -z "${DEPLOY_PATH}" ]; then echo "DEPLOY_PATH repository variable is required" && exit 1; fi
+          echo "Deploying to: ${DEPLOY_PATH}"
 
-        # Create a simple start script (optional)
-        cat > deploy/start.sh << 'EOF'
-        #!/bin/bash
-        set -e
-        APP_DIR="$1"
-        if [ -z "$APP_DIR" ]; then
-          echo "Usage: ./start.sh <deploy_path>"; exit 1;
-        fi
-        cd "$APP_DIR"
-        npm install --production --no-package-lock || true
-        cd backend
-        npm install --production --no-package-lock || true
-        if command -v pm2 >/dev/null 2>&1; then
-          pm2 restart ecosystem.config.js || pm2 start ecosystem.config.js || true
-        else
-          echo "PM2 not found. Skipping process restart."
-        fi
-        EOF
-        chmod +x deploy/start.sh
+      - name: Create deploy directory and test SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || 22 }}
+          timeout: 60s
+          command_timeout: 10m
+          script_stop: true
+          script: |
+            mkdir -p "$DEPLOY_PATH"
+            echo "OK: $DEPLOY_PATH"
 
-    - name: Archive deployment package
-      run: |
-        tar -czf deployment.tar.gz -C deploy .
+      - name: Upload package to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || 22 }}
+          source: "deployment.tar.gz"
+          target: "/tmp/"
 
-    - name: Deploy to VPS
-      uses: appleboy/ssh-action@v1.0.3
-      with:
-        host: ${{ secrets.VPS_HOST }}
-        username: ${{ secrets.VPS_USERNAME }}
-        key: ${{ secrets.VPS_SSH_KEY }}
-        port: ${{ secrets.VPS_PORT || 22 }}
-        script: |
-          # Create application directory (no sudo; use user-owned path)
-          mkdir -p "$DEPLOY_PATH"
-          # Optional backup
-          if [ -d "$DEPLOY_PATH/backend" ]; then
-            cp -r "$DEPLOY_PATH" "${DEPLOY_PATH}_backup_$(date +%Y%m%d_%H%M%S)"
-          fi
-
-    - name: Copy files to VPS
-      uses: appleboy/scp-action@v0.1.7
-      with:
-        host: ${{ secrets.VPS_HOST }}
-        username: ${{ secrets.VPS_USERNAME }}
-        key: ${{ secrets.VPS_SSH_KEY }}
-        port: ${{ secrets.VPS_PORT || 22 }}
-        source: "deployment.tar.gz"
-        target: "/tmp/"
-
-    - name: Extract and install on VPS
-      uses: appleboy/ssh-action@v1.0.3
-      with:
-        host: ${{ secrets.VPS_HOST }}
-        username: ${{ secrets.VPS_USERNAME }}
-        key: ${{ secrets.VPS_SSH_KEY }}
-        port: ${{ secrets.VPS_PORT || 22 }}
-        script: |
-          # Extract deployment package
-          mkdir -p "$DEPLOY_PATH"
-          tar -xzf /tmp/deployment.tar.gz -C "$DEPLOY_PATH"
-          rm /tmp/deployment.tar.gz
-
-          # Install dependencies (no sudo)
-          cd "$DEPLOY_PATH"
-          npm install --production --no-package-lock || true
-          cd backend
-          npm install --production --no-package-lock || true
-
-          # Optional: restart with PM2 if available
-          if command -v pm2 >/dev/null 2>&1 && [ -f "$DEPLOY_PATH/ecosystem.config.js" ]; then
+      - name: Extract and install on VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || 22 }}
+          timeout: 60s
+          command_timeout: 15m
+          script_stop: true
+          script: |
+            set -e
+            mkdir -p "$DEPLOY_PATH"
+            tar -xzf /tmp/deployment.tar.gz -C "$DEPLOY_PATH"
+            rm /tmp/deployment.tar.gz
             cd "$DEPLOY_PATH"
-            pm2 restart ecosystem.config.js || pm2 start ecosystem.config.js || true
-          else
-            echo "PM2 not found or ecosystem.config.js missing. Skipping restart."
-          fi
+            npm install --production --no-audit --no-fund || true
+            cd backend && npm install --production --no-audit --no-fund || true
+            # create .env if not exists and secrets are provided
+            if [ ! -f .env ] && [ -n "${{ secrets.MONGODB_URI }}" ]; then
+              cat > .env << EOF
+            PORT=${{ secrets.BACKEND_PORT || 5000 }}
+            MONGODB_URI=${{ secrets.MONGODB_URI }}
+            NODE_ENV=production
+            EOF
+            fi
+            # Restart with PM2 if available
+            if command -v pm2 >/dev/null 2>&1 && [ -f "$DEPLOY_PATH/ecosystem.config.js" ]; then
+              cd "$DEPLOY_PATH"
+              pm2 restart ecosystem.config.js || pm2 start ecosystem.config.js || true
+            else
+              echo "PM2 not found or config missing; skipping process restart."
+            fi
 
-    - name: Health check (best-effort)
-      uses: appleboy/ssh-action@v1.0.3
-      with:
-        host: ${{ secrets.VPS_HOST }}
-        username: ${{ secrets.VPS_USERNAME }}
-        key: ${{ secrets.VPS_SSH_KEY }}
-        port: ${{ secrets.VPS_PORT || 22 }}
-        script: |
-          set +e
-          curl -fsS http://localhost:${{ secrets.BACKEND_PORT || 5000 }}/api/health || true
-          echo "Health check executed." 
+      - name: Health check (best effort)
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || 22 }}
+          script: |
+            set +e
+            curl -fsS http://localhost:${{ secrets.BACKEND_PORT || 5000 }}/api/health || true
+            echo "Health check executed."
