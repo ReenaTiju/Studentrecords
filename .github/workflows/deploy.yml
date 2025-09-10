@@ -84,8 +84,8 @@ jobs:
           command_timeout: 10m
           script_stop: true
           script: |
-            mkdir -p "$DEPLOY_PATH"
-            echo "OK: $DEPLOY_PATH"
+            mkdir -p "/home/testatozas-atozascollege/htdocs/atozascollege.testatozas.in"
+            echo "OK: /home/testatozas-atozascollege/htdocs/atozascollege.testatozas.in"
 
       - name: Upload package to VPS
         uses: appleboy/scp-action@v0.1.7
@@ -109,10 +109,10 @@ jobs:
           script_stop: true
           script: |
             set -e
-            mkdir -p "$DEPLOY_PATH"
-            tar -xzf /tmp/deployment.tar.gz -C "$DEPLOY_PATH"
+            mkdir -p "/home/testatozas-atozascollege/htdocs/atozascollege.testatozas.in"
+            tar -xzf /tmp/deployment.tar.gz -C "/home/testatozas-atozascollege/htdocs/atozascollege.testatozas.in"
             rm /tmp/deployment.tar.gz
-            cd "$DEPLOY_PATH"
+            cd "/home/testatozas-atozascollege/htdocs/atozascollege.testatozas.in"
             npm install --production --no-audit --no-fund || true
             cd backend && npm install --production --no-audit --no-fund || true
             # create .env if not exists and secrets are provided
@@ -124,8 +124,8 @@ jobs:
             EOF
             fi
             # Restart with PM2 if available
-            if command -v pm2 >/dev/null 2>&1 && [ -f "$DEPLOY_PATH/ecosystem.config.js" ]; then
-              cd "$DEPLOY_PATH"
+            if command -v pm2 >/dev/null 2>&1 && [ -f "/home/testatozas-atozascollege/htdocs/atozascollege.testatozas.in/ecosystem.config.js" ]; then
+              cd "/home/testatozas-atozascollege/htdocs/atozascollege.testatozas.in"
               pm2 restart ecosystem.config.js || pm2 start ecosystem.config.js || true
             else
               echo "PM2 not found or config missing; skipping process restart."
