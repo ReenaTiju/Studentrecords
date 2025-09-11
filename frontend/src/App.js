@@ -210,7 +210,7 @@ function App() {
         <AppBar position="static">
           <Toolbar>
             <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-              Student Records Management System
+              STUDENT-RECORDS MANAGEMENT SYSTEM
             </Typography>
           </Toolbar>
         </AppBar>
