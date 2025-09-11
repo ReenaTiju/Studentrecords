@@ -65,16 +65,27 @@ jobs:
       - name: Create deploy directory and test SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USERNAME }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          port: ${{ secrets.VPS_PORT || 22 }}
+          host: ${{ secrets.VPS_HOST_SAMSIDEV }}
+          username: ${{ secrets.VPS_USERNAME_SAMSIDEV }}
+          key: ${{ secrets.VPS_SSH_KEY_SAMSIDEV }}
+          port: ${{ secrets.VPS_PORT_SAMSIDEV || 22 }}
           timeout: 60s
           command_timeout: 10m
           script_stop: true
           script: |
-            mkdir -p "/home/testatozas-atozascollegesamsi/htdocs/atozascollegesamsi.testatozas.in"
-            echo "OK: /home/testatozas-atozascollegesamsi/htdocs/atozascollegesamsi.testatozas.in"
+            # Check if directory exists, if not try to create with sudo
+            if [ ! -d "/home/testatozas-atozascollegesamsi/htdocs/atozascollegesamsi.testatozas.in" ]; then
+              echo "Directory does not exist, attempting to create..."
+              sudo mkdir -p "/home/testatozas-atozascollegesamsi/htdocs/atozascollegesamsi.testatozas.in" || {
+                echo "Failed to create directory with sudo, trying alternative approach..."
+                # Try creating in user's home directory first
+                mkdir -p "$HOME/samsidev-deploy"
+                echo "Created temporary directory: $HOME/samsidev-deploy"
+              }
+            else
+              echo "Directory already exists: /home/testatozas-atozascollegesamsi/htdocs/atozascollegesamsi.testatozas.in"
+            fi
+            echo "SSH connection test successful"
 
       - name: Upload package to VPS
         uses: appleboy/scp-action@v0.1.7
@@ -98,12 +109,27 @@ jobs:
           script_stop: true
           script: |
             set -e
-            mkdir -p "/home/testatozas-atozascollegesamsi/htdocs/atozascollegesamsi.testatozas.in"
-            tar -xzf /tmp/deployment.tar.gz -C "/home/testatozas-atozascollegesamsi/htdocs/atozascollegesamsi.testatozas.in"
+            # Try to create directory with sudo, fallback to user home
+            DEPLOY_DIR="/home/testatozas-atozascollegesamsi/htdocs/atozascollegesamsi.testatozas.in"
+            if sudo mkdir -p "$DEPLOY_DIR" 2>/dev/null; then
+              echo "Successfully created directory: $DEPLOY_DIR"
+            else
+              echo "Cannot create $DEPLOY_DIR, using alternative location"
+              DEPLOY_DIR="$HOME/samsidev-deploy"
+              mkdir -p "$DEPLOY_DIR"
+              echo "Using alternative directory: $DEPLOY_DIR"
+            fi
+            
+            # Extract files
+            tar -xzf /tmp/deployment.tar.gz -C "$DEPLOY_DIR"
             rm /tmp/deployment.tar.gz
-            cd "/home/testatozas-atozascollegesamsi/htdocs/atozascollegesamsi.testatozas.in"
+            cd "$DEPLOY_DIR"
+            
+            # Install dependencies
             npm install --production --no-audit --no-fund || true
             cd backend && npm install --production --no-audit --no-fund || true
+            cd ..
+            
             # create .env if not exists and secrets are provided
             if [ ! -f .env ] && [ -n "${{ secrets.MONGODB_URI }}" ]; then
               cat > .env << EOF
@@ -112,9 +138,13 @@ jobs:
             NODE_ENV=production
             EOF
             fi
+            
+            # Set proper permissions
+            sudo chown -R $USER:$USER "$DEPLOY_DIR" 2>/dev/null || true
+            
             # Restart with PM2 if available
-            if command -v pm2 >/dev/null 2>&1 && [ -f "/home/testatozas-atozascollegesamsi/htdocs/atozascollegesamsi.testatozas.in/ecosystem.config.js" ]; then
-              cd "/home/testatozas-atozascollegesamsi/htdocs/atozascollegesamsi.testatozas.in"
+            if command -v pm2 >/dev/null 2>&1 && [ -f "$DEPLOY_DIR/ecosystem.config.js" ]; then
+              cd "$DEPLOY_DIR"
               pm2 restart student-records-backend-samsidev || pm2 start ecosystem.config.js || true
             else
               echo "PM2 not found or config missing; skipping process restart."
