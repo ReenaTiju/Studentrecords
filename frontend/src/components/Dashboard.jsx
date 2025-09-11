@@ -107,6 +107,8 @@ const Dashboard = () => {
       <Typography variant="h4" component="h1" gutterBottom>
         Dashboard
       </Typography>
+
+      <h1>Hello</h1>
       
       <Grid container spacing={3}>
         {/* Key Statistics */}
