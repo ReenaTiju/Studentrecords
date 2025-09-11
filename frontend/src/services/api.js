@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://atozascollege.testatozas.in/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://atozascollegereena.testatozas.in/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
