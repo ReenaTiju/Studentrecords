@@ -1,7 +1,8 @@
 import axios from 'axios';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://atozascollegereena.testatozas.in/api';
-
+// Fix: Add http:// protocol for localhost development
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:1055/api';
+//const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://atozascollegereena.testatozas.in/api';
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {

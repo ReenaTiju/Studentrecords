@@ -1,0 +1,380 @@
+/* Student Detail Component Styles */
+.student-detail-container {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+.detail-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 32px;
+  text-align: center;
+}
+
+.student-avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+  font-size: 48px;
+  color: white;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+}
+
+.student-name {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.student-id {
+  font-size: 1.1rem;
+  opacity: 0.9;
+  font-weight: 500;
+}
+
+/* Detail Content */
+.detail-content {
+  padding: 32px;
+}
+
+.detail-section {
+  margin-bottom: 32px;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.section-icon {
+  font-size: 24px !important;
+  margin-right: 12px;
+  color: #1976d2;
+}
+
+.section-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+/* Info Grid */
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.info-item {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 20px;
+  border-left: 4px solid #1976d2;
+}
+
+.info-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #7f8c8d;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.info-value {
+  font-size: 16px;
+  color: #2c3e50;
+  font-weight: 500;
+}
+
+.info-value.email {
+  color: #1976d2;
+  text-decoration: none;
+}
+
+.info-value.email:hover {
+  text-decoration: underline;
+}
+
+.info-value.phone {
+  color: #27ae60;
+}
+
+/* Address Section */
+.address-section {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  color: white;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.address-section .section-title {
+  color: white;
+}
+
+.address-section .info-item {
+  background: rgba(255, 255, 255, 0.1);
+  border-left-color: white;
+}
+
+.address-section .info-label {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.address-section .info-value {
+  color: white;
+}
+
+/* Marks Section */
+.marks-section {
+  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+  color: white;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.marks-section .section-title {
+  color: white;
+}
+
+.marks-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.mark-item {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 16px;
+  text-align: center;
+}
+
+.mark-subject {
+  font-size: 14px;
+  opacity: 0.9;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.mark-score {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.mark-grade {
+  font-size: 12px;
+  margin-top: 4px;
+  opacity: 0.9;
+}
+
+.total-marks {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+  margin-top: 16px;
+}
+
+.total-label {
+  font-size: 14px;
+  opacity: 0.9;
+  margin-bottom: 8px;
+}
+
+.total-value {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.total-grade {
+  font-size: 16px;
+  opacity: 0.9;
+}
+
+/* Grade Badge */
+.grade-badge {
+  display: inline-block;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.grade-badge.excellent {
+  background: linear-gradient(135deg, #2ecc71, #27ae60);
+  color: white;
+}
+
+.grade-badge.good {
+  background: linear-gradient(135deg, #3498db, #2980b9);
+  color: white;
+}
+
+.grade-badge.average {
+  background: linear-gradient(135deg, #f39c12, #e67e22);
+  color: white;
+}
+
+.grade-badge.poor {
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  color: white;
+}
+
+/* Action Buttons */
+.action-section {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  padding: 24px;
+  background: #f8f9fa;
+  border-top: 1px solid #e9ecef;
+}
+
+.action-button {
+  min-width: 120px;
+  height: 48px;
+  border-radius: 8px;
+  font-weight: 600;
+  text-transform: none;
+  font-size: 16px;
+  transition: all 0.3s ease;
+}
+
+.action-button.edit {
+  background: linear-gradient(45deg, #f39c12 30%, #e67e22 90%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(243, 156, 18, 0.3);
+}
+
+.action-button.edit:hover {
+  background: linear-gradient(45deg, #e67e22 30%, #d35400 90%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(243, 156, 18, 0.4);
+}
+
+.action-button.close {
+  background: linear-gradient(45deg, #95a5a6 30%, #7f8c8d 90%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(149, 165, 166, 0.3);
+}
+
+.action-button.close:hover {
+  background: linear-gradient(45deg, #7f8c8d 30%, #6c7b7d 90%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(149, 165, 166, 0.4);
+}
+
+/* Loading States */
+.detail-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+}
+
+.loading-spinner {
+  color: #1976d2;
+}
+
+/* Error States */
+.detail-error {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.error-icon {
+  font-size: 64px !important;
+  color: #e74c3c;
+  margin-bottom: 16px;
+}
+
+.error-message {
+  color: #7f8c8d;
+  font-size: 18px;
+  margin-bottom: 20px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .student-detail-container {
+    margin: 10px;
+  }
+  
+  .detail-header {
+    padding: 24px;
+  }
+  
+  .student-avatar {
+    width: 100px;
+    height: 100px;
+    font-size: 40px;
+  }
+  
+  .detail-content {
+    padding: 20px;
+  }
+  
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .marks-grid {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  }
+  
+  .action-section {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .action-button {
+    width: 100%;
+    max-width: 200px;
+  }
+}
+
+@media (max-width: 480px) {
+  .detail-header {
+    padding: 20px;
+  }
+  
+  .student-avatar {
+    width: 80px;
+    height: 80px;
+    font-size: 32px;
+  }
+  
+  .student-name {
+    font-size: 1.5rem;
+  }
+  
+  .detail-content {
+    padding: 16px;
+  }
+  
+  .marks-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .mark-item {
+    padding: 12px;
+  }
+} 

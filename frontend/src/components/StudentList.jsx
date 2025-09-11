@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react';
+import './StudentList.css'; // Add this import
 import {
   Box,
   Paper,
