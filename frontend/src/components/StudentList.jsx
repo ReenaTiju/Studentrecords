@@ -294,7 +294,7 @@ const StudentList = ({
             onClick={() => setDeleteDialogOpen(false)}
             disabled={deleteLoading}
           >
-            Cancel
+            Cancel...
           </Button>
           <Button
             onClick={handleDeleteConfirm}
