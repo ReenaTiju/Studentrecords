@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import './App.css';
 import {
   ThemeProvider,
   createTheme,
@@ -210,11 +211,12 @@ function App() {
         <AppBar position="static">
           <Toolbar>
             <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-              Student Records Management System
+              STUDENT-RECORDS MANAGEMENT SYSTEM
             </Typography>
+            
           </Toolbar>
         </AppBar>
-
+        <h1>LearnTrack</h1>
         <Container maxWidth="xl" sx={{ mt: 2 }}>
           {/* Navigation Tabs */}
           {currentView !== 'view' && (
@@ -222,7 +224,7 @@ function App() {
               <Tabs value={tabValue} onChange={handleTabChange} aria-label="main navigation">
                 <Tab 
                   icon={<DashboardIcon />} 
-                  label="Dashboard" 
+                  label="Dashboard..." 
                   iconPosition="start"
                 />
                 <Tab 

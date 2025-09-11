@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import './Dashboard.css';
 import {
   Box,
   Grid,
@@ -105,9 +106,10 @@ const Dashboard = () => {
   return (
     <Box sx={{ p: 3 }}>
       <Typography variant="h4" component="h1" gutterBottom>
-        Dashboard
+        Welcome to Dashboard
       </Typography>
-      
+
+        
       <Grid container spacing={3}>
         {/* Key Statistics */}
         <Grid item xs={12} sm={6} md={3}>

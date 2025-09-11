@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react';
+import './StudentList.css'; // Add this import
 import {
   Box,
   Paper,
@@ -294,7 +295,7 @@ const StudentList = ({
             onClick={() => setDeleteDialogOpen(false)}
             disabled={deleteLoading}
           >
-            Cancel
+            Cancel...
           </Button>
           <Button
             onClick={handleDeleteConfirm}
