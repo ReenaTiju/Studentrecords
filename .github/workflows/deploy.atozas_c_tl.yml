@@ -1,0 +1,160 @@
+name: CI/CD - MERN to Hostinger VPS (atozas_c_tl)
+
+on:
+  push:
+    branches: [ atozas_c_tl ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies (root)
+        run: npm ci || npm install
+
+      - name: Install backend deps
+        run: |
+          cd backend
+          npm ci || npm install
+
+      - name: Install frontend deps and build
+        run: |
+          cd frontend
+          npm ci || npm install
+          npm run build
+
+      - name: Package deploy artifacts
+        run: |
+          rm -rf deploy && mkdir -p deploy
+          cp -r backend deploy/backend
+          cp -r frontend/build deploy/frontend
+          cp package.json deploy/package.json
+          if [ -f ecosystem.config.js ]; then cp ecosystem.config.js deploy/; fi
+          tar -czf deployment.tar.gz -C deploy .
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/atozas_c_tl'
+    environment:
+      name: atozas_c_tl
+    env:
+      # Prefer repo variable for path, fallback to hardcoded path provided by user
+      DEPLOY_PATH: ${{ vars.DEPLOY_PATH_TL || '/home/testatozas-atozascollegetl/htdocs/atozascollegetl.testatozas.in' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Rebuild tar (actions do not share workspace between jobs)
+        run: |
+          npm ci || npm install
+          cd backend && npm ci || npm install && cd ..
+          cd frontend && npm ci || npm install && npm run build && cd ..
+          rm -rf deploy && mkdir -p deploy
+          cp -r backend deploy/backend
+          cp -r frontend/build deploy/frontend
+          cp package.json deploy/package.json
+          if [ -f ecosystem.config.js ]; then cp ecosystem.config.js deploy/; fi
+          tar -czf deployment.tar.gz -C deploy .
+
+      - name: Ensure DEPLOY_PATH is defined
+        run: |
+          if [ -z "${DEPLOY_PATH}" ]; then echo "DEPLOY_PATH_TL repository variable is required or set a default in workflow" && exit 1; fi
+          echo "Deploying to: ${DEPLOY_PATH}"
+
+      - name: Create deploy directory and test SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST_TL || secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME_TL || secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY_TL || secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT_TL || secrets.VPS_PORT || 22 }}
+          timeout: 60s
+          command_timeout: 10m
+          script_stop: true
+          script: |
+            mkdir -p "${{ env.DEPLOY_PATH }}"
+            echo "OK: ${{ env.DEPLOY_PATH }}"
+
+      - name: Upload package to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST_TL || secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME_TL || secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY_TL || secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT_TL || secrets.VPS_PORT || 22 }}
+          source: "deployment.tar.gz"
+          target: "/tmp/"
+
+      - name: Extract and install on VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST_TL || secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME_TL || secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY_TL || secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT_TL || secrets.VPS_PORT || 22 }}
+          timeout: 60s
+          command_timeout: 15m
+          script_stop: true
+          script: |
+            set -e
+            # Ensure Node.js and npm are available (prefer NVM)
+            export NVM_DIR="$HOME/.nvm"
+            if [ -s "$NVM_DIR/nvm.sh" ]; then
+              . "$NVM_DIR/nvm.sh"
+              nvm install 18 >/dev/null 2>&1 || true
+              nvm use 18 >/dev/null 2>&1 || true
+            elif command -v node >/dev/null 2>&1; then
+              echo "Found system Node: $(node -v)"
+            else
+              echo "NVM/Node not found; installing NVM and Node 18..."
+              curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+              . "$HOME/.nvm/nvm.sh"
+              nvm install 18
+              nvm use 18
+            fi
+            # Ensure PM2 exists (used for restart)
+            if ! command -v pm2 >/dev/null 2>&1; then
+              npm i -g pm2 || true
+            fi
+            mkdir -p "${{ env.DEPLOY_PATH }}"
+            tar -xzf /tmp/deployment.tar.gz -C "${{ env.DEPLOY_PATH }}"
+            rm /tmp/deployment.tar.gz
+            cd "${{ env.DEPLOY_PATH }}"
+            npm install --production --no-audit --no-fund || true
+            cd backend && npm install --production --no-audit --no-fund || true
+            if [ ! -f .env ] && [ -n "${{ secrets.MONGODB_URI_TL || secrets.MONGODB_URI }}" ]; then
+              cat > .env << EOF
+            PORT=${{ secrets.BACKEND_PORT_TL || secrets.BACKEND_PORT || 5000 }}
+            MONGODB_URI=${{ secrets.MONGODB_URI_TL || secrets.MONGODB_URI }}
+            NODE_ENV=production
+            EOF
+            fi
+            if command -v pm2 >/dev/null 2>&1 && [ -f "${{ env.DEPLOY_PATH }}/ecosystem.config.js" ]; then
+              cd "${{ env.DEPLOY_PATH }}"
+              pm2 restart ecosystem.config.js || pm2 start ecosystem.config.js || true
+            else
+              echo "PM2 not found or config missing; skipping process restart."
+            fi
+
+      - name: Health check (best effort)
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST_TL || secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME_TL || secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY_TL || secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT_TL || secrets.VPS_PORT || 22 }}
+          script: |
+            set +e
+            curl -fsS http://localhost:${{ secrets.BACKEND_PORT_TL || secrets.BACKEND_PORT || 5000 }}/api/health || true
+            echo "Health check executed."
+
+
