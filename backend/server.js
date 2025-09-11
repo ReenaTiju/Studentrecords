@@ -19,8 +19,7 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 // Serve built frontend from deploy root's frontend directory
 app.use(express.static(path.resolve(__dirname, '..', 'frontend')));
-// Serve built frontend from deploy root's frontend directory
-app.use(express.static(path.resolve(__dirname, '..', 'frontend')));
+
 
 // Routes
 app.use('/api/students', studentRoutes);
