@@ -223,7 +223,7 @@ function App() {
               <Tabs value={tabValue} onChange={handleTabChange} aria-label="main navigation">
                 <Tab 
                   icon={<DashboardIcon />} 
-                  label="Dashboard" 
+                  label="Dashboard..." 
                   iconPosition="start"
                 />
                 <Tab 
