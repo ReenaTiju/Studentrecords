@@ -41,10 +41,11 @@ app.get(/^\/(?!api).*/, (req, res) => {
   res.sendFile(path.resolve(__dirname, '..', 'frontend', 'index.html'));
 });
 
-// 404 handler
-app.use((req, res) => {
+// 404 handler (API only)
+app.use('/api', (req, res) => {
   res.status(404).json({ message: 'Route not found' });
 });
+
 const PORT = process.env.PORT || 1057;
 
 
