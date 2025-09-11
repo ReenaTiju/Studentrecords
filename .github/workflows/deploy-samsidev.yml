@@ -47,8 +47,8 @@ jobs:
     environment:
       name: samsidev
     env:
-      # Prefer repo variable for path, fallback to hardcoded path provided by user
-      DEPLOY_PATH: ${{ vars.DEPLOY_PATH_SAMSIDEV || '/home/testatozas-atozascollegesamsi/htdocs/atozascollegesamsi.testatozas.in' }}
+      # Clean deployment path - only the folder name you want
+      DEPLOY_PATH: '/home/testatozas-atozascollegesamsi/htdocs/atozascollegesamsi.testatozas.in'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -81,8 +81,14 @@ jobs:
           command_timeout: 10m
           script_stop: true
           script: |
+            # Clean up any folders with wrong names
+            cd /home/testatozas-atozascollegesamsi/htdocs/
+            # Remove any folders that have extra text in the name
+            rm -rf atozascollegesamsi.testatozas.in* 2>/dev/null || true
+            
+            # Create the correct folder with clean name
             mkdir -p "${{ env.DEPLOY_PATH }}"
-            echo "OK: ${{ env.DEPLOY_PATH }}"
+            echo "Created clean folder: ${{ env.DEPLOY_PATH }}"
 
       - name: Upload package to VPS
         uses: appleboy/scp-action@v0.1.7
@@ -125,8 +131,11 @@ jobs:
             if ! command -v pm2 >/dev/null 2>&1; then
               npm i -g pm2 || true
             fi
-            mkdir -p "${{ env.DEPLOY_PATH }}"
-            tar -xzf /tmp/deployment.tar.gz -C "${{ env.DEPLOY_PATH }}"
+             # Ensure clean folder name
+             cd /home/testatozas-atozascollegesamsi/htdocs/
+             rm -rf atozascollegesamsi.testatozas.in* 2>/dev/null || true
+             mkdir -p "${{ env.DEPLOY_PATH }}"
+             tar -xzf /tmp/deployment.tar.gz -C "${{ env.DEPLOY_PATH }}"
             rm /tmp/deployment.tar.gz
             cd "${{ env.DEPLOY_PATH }}"
             npm install --production --no-audit --no-fund || true
