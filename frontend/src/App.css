@@ -1,38 +1,113 @@
+/* Main Application Styles */
 .App {
-  text-align: center;
-}
-
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
   min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+/* App Bar Styles */
+.app-bar {
+  background: linear-gradient(45deg, #1976d2 30%, #42a5f5 90%);
+  box-shadow: 0 3px 15px rgba(0,0,0,0.2);
+}
+
+.app-title {
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+/* Main Container */
+.main-container {
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+
+/* Tab Styling */
+.tab-container {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  margin-bottom: 20px;
+}
+
+.custom-tab {
+  min-height: 60px;
+  font-weight: 500;
+  text-transform: none;
+  font-size: 16px;
+}
+
+/* Loading Spinner */
+.loading-container {
   display: flex;
-  flex-direction: column;
-  align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
+  align-items: center;
+  min-height: 200px;
+}
+
+/* Error Messages */
+.error-container {
+  margin: 20px 0;
+}
+
+/* Success Messages */
+.success-message {
+  background: linear-gradient(45deg, #4caf50, #66bb6a);
   color: white;
+  font-weight: 500;
 }
 
-.App-link {
-  color: #61dafb;
+/* Animation Classes */
+.fade-in {
+  animation: fadeIn 0.5s ease-in;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
+.slide-up {
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { 
+    opacity: 0;
+    transform: translateY(20px);
   }
-  to {
-    transform: rotate(360deg);
+  to { 
+    opacity: 1;
+    transform: translateY(0);
   }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .main-container {
+    padding: 10px;
+  }
+  
+  .custom-tab {
+    font-size: 14px;
+    min-height: 50px;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
 }

@@ -1,0 +1,254 @@
+/* Student Form Component Styles */
+.student-form-container {
+  background: white;
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+  margin-bottom: 20px;
+}
+
+.form-header {
+  margin-bottom: 32px;
+  text-align: center;
+}
+
+.form-title {
+  font-weight: 700;
+  color: #2c3e50;
+  margin-bottom: 8px;
+  font-size: 1.75rem;
+}
+
+.form-subtitle {
+  color: #7f8c8d;
+  font-size: 16px;
+}
+
+/* Form Layout */
+.form-grid {
+  margin-bottom: 24px;
+}
+
+.form-section {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+  border: 1px solid #e9ecef;
+}
+
+.section-title {
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 20px;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.section-icon {
+  color: #1976d2;
+}
+
+/* Form Fields */
+.form-field {
+  margin-bottom: 20px;
+}
+
+.form-field .MuiFormControl-root {
+  width: 100%;
+}
+
+.form-field .MuiInputLabel-root {
+  color: #7f8c8d;
+  font-weight: 500;
+}
+
+.form-field .MuiOutlinedInput-root {
+  border-radius: 8px;
+  background: white;
+}
+
+.form-field .MuiOutlinedInput-input {
+  padding: 14px;
+  font-size: 16px;
+}
+
+.form-field .MuiInputLabel-shrink {
+  color: #1976d2;
+}
+
+/* Error States */
+.form-error {
+  color: #e74c3c;
+  font-size: 14px;
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+.field-error .MuiOutlinedInput-root {
+  border-color: #e74c3c;
+}
+
+.field-error .MuiInputLabel-root {
+  color: #e74c3c;
+}
+
+/* Submit Button */
+.submit-button {
+  background: linear-gradient(45deg, #1976d2 30%, #42a5f5 90%);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-weight: 600;
+  padding: 12px 32px;
+  font-size: 16px;
+  text-transform: none;
+  box-shadow: 0 4px 15px rgba(25, 118, 210, 0.3);
+  transition: all 0.3s ease;
+}
+
+.submit-button:hover {
+  background: linear-gradient(45deg, #1565c0 30%, #1976d2 90%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(25, 118, 210, 0.4);
+}
+
+.submit-button:disabled {
+  background: #bdc3c7;
+  box-shadow: none;
+  transform: none;
+}
+
+/* Loading Button */
+.loading-button {
+  position: relative;
+}
+
+.loading-spinner {
+  color: white;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin-left: -12px;
+  margin-top: -12px;
+}
+
+/* Success/Error Messages */
+.message-container {
+  margin: 16px 0;
+  border-radius: 8px;
+  padding: 16px;
+  font-weight: 500;
+}
+
+.success-message {
+  background: linear-gradient(135deg, #4caf50, #66bb6a);
+  color: white;
+}
+
+.error-message {
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  color: white;
+}
+
+/* Address Fields */
+.address-grid {
+  margin-top: 16px;
+}
+
+.address-field {
+  margin-bottom: 16px;
+}
+
+/* Marks Section */
+.marks-section {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+}
+
+.marks-section .section-title {
+  color: white;
+}
+
+.marks-section .MuiInputLabel-root {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.marks-section .MuiOutlinedInput-root {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.marks-section .MuiOutlinedInput-input {
+  color: white;
+}
+
+.marks-section .MuiInputLabel-shrink {
+  color: white;
+}
+
+.marks-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.mark-field {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.mark-label {
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.mark-input {
+  color: white !important;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .student-form-container {
+    padding: 20px;
+    margin: 10px;
+  }
+  
+  .form-section {
+    padding: 16px;
+  }
+  
+  .marks-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .submit-button {
+    width: 100%;
+    padding: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .student-form-container {
+    padding: 16px;
+  }
+  
+  .form-title {
+    font-size: 1.5rem;
+  }
+  
+  .form-subtitle {
+    font-size: 14px;
+  }
+  
+  .form-field .MuiOutlinedInput-input {
+    padding: 12px;
+    font-size: 14px;
+  }
+} 
